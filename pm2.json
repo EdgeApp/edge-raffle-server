@@ -1,11 +1,10 @@
 {
     "apps": [
       {
-        "name": "snacksServer",
+        "name": "raffleServer",
         "script": "lib/server/index.js",
-        "error_file": "/var/log/pm2/snacksServer.error.log",
-        "out_file": "/var/log/pm2/snacksServer.out.log"
+        "error_file": "/var/log/pm2/raffleServer.error.log",
+        "out_file": "/var/log/pm2/raffleServer.out.log"
       }
     ]
   }
-  
