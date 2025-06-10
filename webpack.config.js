@@ -6,7 +6,8 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
-    sourceMapFilename: '[file].map'
+    sourceMapFilename: '[file].map',
+    publicPath: '/'
   },
   mode: 'development',
   devtool: 'inline-source-map',
@@ -45,9 +46,29 @@ module.exports = {
     port: 3000,
     proxy: {
       '/api': 'http://localhost:4000'
-    }
+    },
+
+    static: {
+      directory: path.join(__dirname, 'dist')
+    },
+    devMiddleware: {
+      writeToDisk: true
+    },
+    watchFiles: {
+      paths: ['src/**/*'],
+      options: {
+        usePolling: false
+      }
+    },
+    hot: true
   },
   optimization: {
     minimize: false
+  },
+  watch: true,
+  watchOptions: {
+    ignored: /node_modules/,
+    aggregateTimeout: 300,
+    poll: 1000
   }
 }
