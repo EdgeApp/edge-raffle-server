@@ -29,14 +29,12 @@ const Title = styled.h1`
 export const Header = () => (
   <HeaderContainer>
     <Title>
-      Welcome to the{' '}
       <Logo
         src={
           'https://raw.githubusercontent.com/EdgeApp/edge-brand-guide/refs/heads/master/Logo/Primary/Edge_Primary_Logo_MintWhite.png'
         }
         alt="Edge"
       />{' '}
-      snack bar
     </Title>
   </HeaderContainer>
 )

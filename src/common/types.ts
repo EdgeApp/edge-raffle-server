@@ -8,6 +8,22 @@ import {
   asValue
 } from 'cleaners'
 
+export interface RaffleEntry {
+  nameHandle: string
+  isoDate: string
+  raffleId: string
+  publicAddress: string
+  _id?: string
+  _rev?: string
+}
+
+export const asRaffleEntryRequest = asObject({
+  nameHandle: asString,
+  publicAddress: asString
+})
+
+export type RaffleEntryRequest = ReturnType<typeof asRaffleEntryRequest>
+
 export const asAsset = asObject({
   chainPluginId: asString,
   chainName: asOptional(asString),
