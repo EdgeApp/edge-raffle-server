@@ -79,11 +79,33 @@ const ErrorMessage = styled.div`
   font-weight: bold;
 `
 
+const SubmitError = styled.div`
+  color: #dc3545;
+  margin-top: 16px;
+  text-align: center;
+  padding: 12px;
+  background-color: #ffe6e6;
+  border-radius: 8px;
+  max-width: 300px;
+  font-size: 14px;
+`
+
+const SuccessMessage = styled.div`
+  color: #28a745;
+  font-size: 24px;
+  text-align: center;
+  max-width: 600px;
+  line-height: 1.5;
+  padding: 20px;
+`
+
 export const RaffleEntry = () => {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const [nameHandle, setNameHandle] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [isSubmitted, setIsSubmitted] = useState(false)
   const publicAddress = searchParams.get('publicAddress')
 
   useEffect(() => {
@@ -96,6 +118,8 @@ export const RaffleEntry = () => {
     if (nameHandle.trim() === '' || publicAddress == null) return
 
     setIsSubmitting(true)
+    setError(null)
+
     try {
       const response = await fetch(`${getApiBaseUrl()}/api/addEntry`, {
         method: 'POST',
@@ -106,18 +130,32 @@ export const RaffleEntry = () => {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to submit entry')
+        const errorText = await response.text()
+        throw new Error(errorText)
       }
 
-      // Clear the form
-      setNameHandle('')
-      alert('Entry submitted successfully!')
+      setIsSubmitted(true)
     } catch (error) {
       console.error('Error submitting entry:', error)
-      alert('Failed to submit entry. Please try again.')
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to submit entry. Please try again.'
+      )
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (isSubmitted) {
+    return (
+      <Container>
+        <SuccessMessage>
+          Entry submitted! Good luck and check in at the end of the conference
+          for raffle winners.
+        </SuccessMessage>
+      </Container>
+    )
   }
 
   if (publicAddress == null) {
@@ -148,8 +186,9 @@ export const RaffleEntry = () => {
           isSubmitting || nameHandle.trim() === '' || publicAddress == null
         }
       >
-        Submit
+        {isSubmitting ? 'Submitting...' : 'Submit'}
       </Button>
+      {error != null && <SubmitError>{error}</SubmitError>}
     </Container>
   )
 }

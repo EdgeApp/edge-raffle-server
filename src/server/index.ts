@@ -14,7 +14,25 @@ app.use(express.json())
 
 const couch = nano(config.couchDbFullpath)
 
-// Create the raffle_entries database if it doesn't exist
+interface CouchIndex {
+  name: string
+  def: {
+    fields: Array<{
+      [key: string]: string
+    }>
+  }
+}
+
+interface CouchIndexResponse {
+  total_rows: number
+  indexes: CouchIndex[]
+}
+
+interface CouchDatabase extends nano.DocumentScope<unknown> {
+  getIndexes(): Promise<CouchIndexResponse>
+}
+
+// Create the raffle_entries database and setup indexes if they don't exist
 const initDatabase = async () => {
   try {
     await couch.db.create('raffle_entries')
@@ -24,11 +42,81 @@ const initDatabase = async () => {
       console.error('Error creating database:', error)
     }
   }
+
+  // Setup indexes for checking duplicates
+  const db = couch.use('raffle_entries') as CouchDatabase
+  try {
+    const existingIndexes = await db.getIndexes()
+
+    const handleIndexExists = existingIndexes.indexes.some(
+      (idx: CouchIndex) => idx.name === 'idx_handle'
+    )
+    const addressIndexExists = existingIndexes.indexes.some(
+      (idx: CouchIndex) => idx.name === 'idx_address'
+    )
+
+    if (!handleIndexExists) {
+      await db.createIndex({
+        index: {
+          fields: ['nameHandle']
+        },
+        name: 'idx_handle'
+      })
+      console.log('Created handle index')
+    }
+
+    if (!addressIndexExists) {
+      await db.createIndex({
+        index: {
+          fields: ['publicAddress']
+        },
+        name: 'idx_address'
+      })
+      console.log('Created address index')
+    }
+  } catch (error) {
+    console.error('Error managing indexes:', error)
+  }
 }
 
 initDatabase()
 
 const db = couch.use('raffle_entries')
+
+// Check if a handle or address already exists for the current raffle
+const checkDuplicates = async (
+  nameHandle: string,
+  publicAddress: string,
+  raffleId: string
+) => {
+  // Check for duplicate handle
+  const handleResult = await db.find({
+    selector: {
+      raffleId,
+      nameHandle
+    },
+    limit: 1,
+    use_index: 'idx_handle'
+  })
+
+  if (handleResult.docs.length > 0) {
+    throw new Error('This handle is already registered for the raffle')
+  }
+
+  // Check for duplicate address
+  const addressResult = await db.find({
+    selector: {
+      raffleId,
+      publicAddress
+    },
+    limit: 1,
+    use_index: 'idx_address'
+  })
+
+  if (addressResult.docs.length > 0) {
+    throw new Error('This Monero address is already registered for the raffle')
+  }
+}
 
 // Add a raffle entry
 app.post('/api/addEntry', async (req, res) => {
@@ -39,6 +127,12 @@ app.post('/api/addEntry', async (req, res) => {
       return res
         .status(400)
         .json({ error: 'nameHandle and publicAddress cannot be empty strings' })
+    }
+
+    try {
+      await checkDuplicates(nameHandle, publicAddress, config.raffleId)
+    } catch (error: any) {
+      return res.status(409).send(error.message)
     }
 
     const maxRetries = 5
