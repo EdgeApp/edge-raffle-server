@@ -211,6 +211,18 @@
   resolved "https://registry.npmjs.org/@pkgr/core/-/core-0.2.4.tgz"
   integrity sha512-ROFF39F6ZrnzSUEmQQZUar0Jt4xVoP9WnDRdWwF4NNcXs3xBTLgBUDoOwW141y1jP+S8nahIbdxbFC7IShw9Iw==
 
+"@prosopo/procaptcha-wrapper@>=2.5.4":
+  version "2.5.5"
+  resolved "https://registry.yarnpkg.com/@prosopo/procaptcha-wrapper/-/procaptcha-wrapper-2.5.5.tgz#b184d8357899af66551383b8541b0be8cca908cf"
+  integrity sha512-EiV7xkbMSDqV6YUY6SMoAMA5Fo9k+lwyEaXv+T81sjMEmQ/P9L+HKsZDP06WRm9fEdqC/2uY0zZDQrXXPN7gdw==
+
+"@prosopo/react-procaptcha-wrapper@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@prosopo/react-procaptcha-wrapper/-/react-procaptcha-wrapper-1.0.0.tgz#92b03c3b812f831a291ab5509a90e09d6813700d"
+  integrity sha512-X/MGoSEhT7oG90dyjmDmaDqQzKiJnwYCsTakg85K7ENdubPw7hOIFp8zMEWiLp/U0OCy37KMaGps+QdKHJinyw==
+  dependencies:
+    "@prosopo/procaptcha-wrapper" ">=2.5.4"
+
 "@remix-run/router@1.23.0":
   version "1.23.0"
   resolved "https://registry.npmjs.org/@remix-run/router/-/router-1.23.0.tgz"
@@ -881,7 +893,7 @@ available-typed-arrays@^1.0.7:
   dependencies:
     possible-typed-array-names "^1.0.0"
 
-axios@^1.6.7, axios@^1.7.4:
+axios@^1.7.4:
   version "1.9.0"
   resolved "https://registry.npmjs.org/axios/-/axios-1.9.0.tgz"
   integrity sha512-re4CqKTJaURpzbLHtIi6XpDv20/CnpXOtjRY5/CU32L8gU8ek9UIivcfvSWvmKEngmVbrUtPpdDwWDWL7DNHvg==
@@ -3884,10 +3896,18 @@ statuses@2.0.1:
   resolved "https://registry.npmjs.org/statuses/-/statuses-1.5.0.tgz"
   integrity sha512-OpZ3zP+jT1PI7I8nemJX4AKmAX070ZkYPVWV/AaKTJl+tXCTGyVdC1a4SL8RUQYEwk/f34ZX8UTykN68FwrqAA==
 
-"string-width-cjs@npm:string-width@^4.2.0", string-width@^4.1.0:
-  name string-width-cjs
+"string-width-cjs@npm:string-width@^4.2.0":
   version "4.2.3"
   resolved "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz"
+  integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
+  dependencies:
+    emoji-regex "^8.0.0"
+    is-fullwidth-code-point "^3.0.0"
+    strip-ansi "^6.0.1"
+
+string-width@^4.1.0:
+  version "4.2.3"
+  resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
   dependencies:
     emoji-regex "^8.0.0"

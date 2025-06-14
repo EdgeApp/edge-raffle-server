@@ -19,7 +19,8 @@ export interface RaffleEntry {
 
 export const asRaffleEntryRequest = asObject({
   nameHandle: asString,
-  publicAddress: asString
+  publicAddress: asString,
+  captchaToken: asString
 })
 
 export type RaffleEntryRequest = ReturnType<typeof asRaffleEntryRequest>

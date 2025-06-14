@@ -2,6 +2,7 @@
 **/.DS_Store
 node_modules
 config.json
+clientConfig.json
 .vscode/
 dist/
 lib/

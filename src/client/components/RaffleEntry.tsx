@@ -1,7 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import styled from 'styled-components'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { getApiBaseUrl } from '../api/baseUrl'
+import { ProcaptchaComponent } from '@prosopo/react-procaptcha-wrapper'
+import { asClientConfig } from '../../clientConfig'
+import clientConfig from '../../../clientConfig.json'
+
+const config = asClientConfig(clientConfig)
+console.log('config', config)
 
 const Container = styled.div`
   display: flex;
@@ -99,6 +105,13 @@ const SuccessMessage = styled.div`
   padding: 20px;
 `
 
+const CaptchaContainer = styled.div`
+  margin: 20px 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+`
+
 export const RaffleEntry = () => {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -106,6 +119,8 @@ export const RaffleEntry = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const captchaRef = useRef<any>(null)
   const publicAddress = searchParams.get('publicAddress')
 
   useEffect(() => {
@@ -115,7 +130,12 @@ export const RaffleEntry = () => {
   }, [publicAddress, navigate])
 
   const handleSubmit = async () => {
-    if (nameHandle.trim() === '' || publicAddress == null) return
+    if (
+      nameHandle.trim() === '' ||
+      publicAddress == null ||
+      captchaToken == null
+    )
+      return
 
     setIsSubmitting(true)
     setError(null)
@@ -126,7 +146,11 @@ export const RaffleEntry = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ nameHandle, publicAddress })
+        body: JSON.stringify({
+          nameHandle,
+          publicAddress,
+          captchaToken
+        })
       })
 
       if (!response.ok) {
@@ -142,9 +166,19 @@ export const RaffleEntry = () => {
           ? error.message
           : 'Failed to submit entry. Please try again.'
       )
+      // Reset captcha on error
+      if (captchaRef.current) {
+        captchaRef.current.reset()
+      }
+      setCaptchaToken(null)
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const handleCaptchaSuccess = (token: string) => {
+    console.log('captcha success', token)
+    setCaptchaToken(token)
   }
 
   if (isSubmitted) {
@@ -180,10 +214,26 @@ export const RaffleEntry = () => {
         <AddressLabel>Your Monero Address</AddressLabel>
         <AddressValue>{publicAddress}</AddressValue>
       </AddressSection>
+      <CaptchaContainer>
+        <ProcaptchaComponent
+          siteKey={config.prosopoSiteKey}
+          language={'en'}
+          callback={handleCaptchaSuccess}
+          htmlAttributes={{
+            className: 'my-app__procaptcha',
+            style: {
+              maxWidth: '600px'
+            }
+          }}
+        />
+      </CaptchaContainer>
       <Button
         onClick={handleSubmit}
         disabled={
-          isSubmitting || nameHandle.trim() === '' || publicAddress == null
+          isSubmitting ||
+          nameHandle.trim() === '' ||
+          publicAddress == null ||
+          captchaToken == null
         }
       >
         {isSubmitting ? 'Submitting...' : 'Submit'}

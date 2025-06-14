@@ -14,22 +14,30 @@ app.use(express.json())
 
 const couch = nano(config.couchDbFullpath)
 
-interface CouchIndex {
-  name: string
-  def: {
-    fields: Array<{
-      [key: string]: string
-    }>
+// Validate Prosopo captcha token
+const validateCaptchaToken = async (token: string): Promise<boolean> => {
+  try {
+    const response = await fetch('https://api.prosopo.io/siteverify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        token,
+        secret: config.prosopoApiKey
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return data.success === true
+  } catch (error) {
+    console.error('Error validating captcha:', error)
+    return false
   }
-}
-
-interface CouchIndexResponse {
-  total_rows: number
-  indexes: CouchIndex[]
-}
-
-interface CouchDatabase extends nano.DocumentScope<unknown> {
-  getIndexes(): Promise<CouchIndexResponse>
 }
 
 // Create the raffle_entries database and setup indexes if they don't exist
@@ -44,15 +52,18 @@ const initDatabase = async () => {
   }
 
   // Setup indexes for checking duplicates
-  const db = couch.use('raffle_entries') as CouchDatabase
+  const db = couch.use('raffle_entries')
   try {
-    const existingIndexes = await db.getIndexes()
+    const existingIndexes = await db.list({
+      startkey: '_design/',
+      endkey: '_design0'
+    })
 
-    const handleIndexExists = existingIndexes.indexes.some(
-      (idx: CouchIndex) => idx.name === 'idx_handle'
+    const handleIndexExists = existingIndexes.rows.some(
+      (row) => row.id === '_design/idx_handle'
     )
-    const addressIndexExists = existingIndexes.indexes.some(
-      (idx: CouchIndex) => idx.name === 'idx_address'
+    const addressIndexExists = existingIndexes.rows.some(
+      (row) => row.id === '_design/idx_address'
     )
 
     if (!handleIndexExists) {
@@ -121,12 +132,20 @@ const checkDuplicates = async (
 // Add a raffle entry
 app.post('/api/addEntry', async (req, res) => {
   try {
-    const { nameHandle, publicAddress } = asRaffleEntryRequest(req.body)
+    const { nameHandle, publicAddress, captchaToken } = asRaffleEntryRequest(
+      req.body
+    )
 
     if (nameHandle === '' || publicAddress === '') {
       return res
         .status(400)
         .json({ error: 'nameHandle and publicAddress cannot be empty strings' })
+    }
+
+    // Validate captcha token
+    const isValidCaptcha = await validateCaptchaToken(captchaToken)
+    if (!isValidCaptcha) {
+      return res.status(400).json({ error: 'Invalid captcha token' })
     }
 
     try {
