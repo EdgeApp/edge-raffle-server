@@ -1,4 +1,5 @@
 import {
+  asArray,
   asEither,
   asNull,
   asNumber,
@@ -16,6 +17,16 @@ export interface RaffleEntry {
   _id?: string
   _rev?: string
 }
+
+// cleaner matching RaffleEntry but without _id and _rev
+export const asRaffleEntry = asObject({
+  nameHandle: asString,
+  isoDate: asString,
+  raffleId: asString,
+  publicAddress: asString
+})
+
+export const asRaffleEntries = asArray(asRaffleEntry)
 
 export const asRaffleEntryRequest = asObject({
   nameHandle: asString,

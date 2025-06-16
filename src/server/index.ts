@@ -2,7 +2,11 @@ import express from 'express'
 import nano from 'nano'
 import cors from 'cors'
 import path from 'path'
-import { RaffleEntry, asRaffleEntryRequest } from '../common/types'
+import {
+  RaffleEntry,
+  asRaffleEntries,
+  asRaffleEntryRequest
+} from '../common/types'
 import { config } from '../config'
 import { clientConfig } from '../clientConfig'
 
@@ -134,8 +138,28 @@ const checkDuplicates = async (
   }
 }
 
+app.get('/api/getEntries', async (req, res) => {
+  console.log('Serving getEntries')
+  const result = await db.find({
+    selector: {
+      raffleId: config.raffleId
+    }
+  })
+
+  const entries = asRaffleEntries(result.docs)
+
+  let entriesText = '<html><body><pre>\n'
+  for (const entry of entries) {
+    entriesText += `${entry.nameHandle}: ${entry.publicAddress.slice(0, 6)}\n`
+  }
+  entriesText += '</pre></body></html>'
+
+  res.send(entriesText)
+})
+
 // Add a raffle entry
 app.post('/api/addEntry', async (req, res) => {
+  console.log('Serving addEntry')
   try {
     const { nameHandle, publicAddress, captchaToken } = asRaffleEntryRequest(
       req.body
@@ -200,7 +224,8 @@ app.post('/api/addEntry', async (req, res) => {
 app.use(express.static(path.join(__dirname, '../../dist')))
 
 // Add this to handle client-side routing
-app.get('*', (req, res) => {
+app.get('/', (req, res) => {
+  console.log('Serving index.html')
   res.sendFile(path.join(__dirname, '../../dist/index.html'))
 })
 
