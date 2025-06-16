@@ -1,9 +1,9 @@
 // Get the base URL for API calls
-import { appPort } from '../../common/values'
+import { clientConfig } from '../../clientConfig'
 
 export const getApiBaseUrl = () => {
   if (process.env.NODE_ENV === 'development') {
-    return `http://localhost:${appPort}`
+    return `http://localhost:${clientConfig.appPort}`
   }
   // In production, use relative URLs
   return ''

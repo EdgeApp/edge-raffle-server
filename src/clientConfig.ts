@@ -1,5 +1,9 @@
-import { asObject, asOptional, asString } from 'cleaners'
+import { asNumber, asObject, asOptional, asString } from 'cleaners'
+import clientConfigJson from '../clientConfig.json'
 
-export const asClientConfig = asObject({
+const asClientConfig = asObject({
+  appPort: asOptional(asNumber, 8008),
   prosopoSiteKey: asOptional(asString, '')
 })
+
+export const clientConfig = asClientConfig(clientConfigJson)

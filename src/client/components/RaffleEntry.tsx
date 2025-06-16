@@ -3,11 +3,9 @@ import styled from 'styled-components'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { getApiBaseUrl } from '../api/baseUrl'
 import { ProcaptchaComponent } from '@prosopo/react-procaptcha-wrapper'
-import { asClientConfig } from '../../clientConfig'
-import clientConfig from '../../../clientConfig.json'
+import { clientConfig } from '../../clientConfig'
 
-const config = asClientConfig(clientConfig)
-console.log('config', config)
+console.log('config', clientConfig)
 
 const Container = styled.div`
   display: flex;
@@ -216,7 +214,7 @@ export const RaffleEntry = () => {
       </AddressSection>
       <CaptchaContainer>
         <ProcaptchaComponent
-          siteKey={config.prosopoSiteKey}
+          siteKey={clientConfig.prosopoSiteKey}
           language={'en'}
           callback={handleCaptchaSuccess}
           htmlAttributes={{
