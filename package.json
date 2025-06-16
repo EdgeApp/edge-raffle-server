@@ -14,9 +14,8 @@
     "lint": "eslint . --ext .ts,.tsx",
     "fix": "eslint . --ext .ts,.tsx --fix",
     "clean": "rimraf lib dist",
-    "precommit": "npm run lint && npm run test",
-    "postinstall": "npm run prepare",
-    "test": ""
+    "precommit": "yarn lint",
+    "postinstall": "yarn prepare"
   },
   "dependencies": {
     "@prosopo/react-procaptcha-wrapper": "^1.0.0",
