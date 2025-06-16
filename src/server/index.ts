@@ -37,8 +37,8 @@ const validateCaptchaToken = async (token: string): Promise<boolean> => {
     }
 
     const data = await response.json()
-    console.log('data', JSON.stringify(data, null, 2))
-    return data.success === true
+    console.log('validateCaptchaToken data:', JSON.stringify(data, null, 2))
+    return data.status === 'ok' && data.verified === true
   } catch (error: any) {
     console.log('Error validating captcha:', error.message)
     return false
