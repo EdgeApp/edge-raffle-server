@@ -16,6 +16,7 @@ const couch = nano(config.couchDbFullpath)
 
 // Validate Prosopo captcha token
 const validateCaptchaToken = async (token: string): Promise<boolean> => {
+  console.log('Validating captcha token')
   try {
     const response = await fetch('https://api.prosopo.io/siteverify', {
       method: 'POST',
@@ -29,13 +30,17 @@ const validateCaptchaToken = async (token: string): Promise<boolean> => {
     })
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
+      const text = await response.text()
+      const errorString = `validateCaptchaToken failure response: ${response.status}: ${text}`
+      console.log(errorString)
+      throw new Error(errorString)
     }
 
     const data = await response.json()
+    console.log('data', JSON.stringify(data, null, 2))
     return data.success === true
-  } catch (error) {
-    console.error('Error validating captcha:', error)
+  } catch (error: any) {
+    console.log('Error validating captcha:', error.message)
     return false
   }
 }

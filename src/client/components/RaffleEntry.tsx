@@ -139,6 +139,7 @@ export const RaffleEntry = () => {
     setError(null)
 
     try {
+      console.log('Submitting entry')
       const response = await fetch(`${getApiBaseUrl()}/api/addEntry`, {
         method: 'POST',
         headers: {
@@ -153,12 +154,14 @@ export const RaffleEntry = () => {
 
       if (!response.ok) {
         const errorText = await response.text()
+        console.log('Error submitting entry:', errorText)
         throw new Error(errorText)
       }
 
+      console.log('Successfully submitted entry')
       setIsSubmitted(true)
     } catch (error) {
-      console.error('Error submitting entry:', error)
+      console.log('Error submitting entry:', error)
       setError(
         error instanceof Error
           ? error.message
