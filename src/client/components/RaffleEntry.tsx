@@ -198,6 +198,26 @@ export const RaffleEntry = () => {
     )
   }
 
+  if (captchaToken == null) {
+    return (
+      <Container>
+        <CaptchaContainer>
+          <ProcaptchaComponent
+            siteKey={clientConfig.prosopoSiteKey}
+            language={'en'}
+            callback={handleCaptchaSuccess}
+            htmlAttributes={{
+              className: 'my-app__procaptcha',
+              style: {
+                maxWidth: '600px'
+              }
+            }}
+          />
+        </CaptchaContainer>
+      </Container>
+    )
+  }
+
   return (
     <Container>
       <Title>Enter name or handle to register</Title>
@@ -212,19 +232,6 @@ export const RaffleEntry = () => {
         <AddressLabel>Your Monero Address</AddressLabel>
         <AddressValue>{publicAddress}</AddressValue>
       </AddressSection>
-      <CaptchaContainer>
-        <ProcaptchaComponent
-          siteKey={clientConfig.prosopoSiteKey}
-          language={'en'}
-          callback={handleCaptchaSuccess}
-          htmlAttributes={{
-            className: 'my-app__procaptcha',
-            style: {
-              maxWidth: '600px'
-            }
-          }}
-        />
-      </CaptchaContainer>
       <Button
         onClick={handleSubmit}
         disabled={
