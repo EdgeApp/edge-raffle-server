@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "configure": "configure",
-    "build.web": "webpack --mode production",
+    "build.web": "webpack --mode production --no-watch",
     "build.server": "tsc -p tsconfig.server.json",
     "prepare": "yarn clean && yarn build.server && yarn build.web",
     "start": "node lib/server/index.js",
