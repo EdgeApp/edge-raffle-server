@@ -4,8 +4,9 @@
     "outDir": "lib",
     "module": "commonjs",
     "target": "es2020",
-    "sourceMap": true
+    "sourceMap": true,
+    "rootDir": "src",
+    "noEmit": false
   },
-  "include": ["src/server/**/*", "src/common/**/*", "src/config.ts"],
-  "exclude": ["src/client"]
-} 
+  "include": ["src/server/**/*", "src/common/**/*", "src/config.ts"]
+}
