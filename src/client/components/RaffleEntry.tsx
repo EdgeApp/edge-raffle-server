@@ -180,6 +180,17 @@ export const RaffleEntry = () => {
   const handleCaptchaSuccess = (token: string) => {
     console.log('captcha success', token)
     setCaptchaToken(token)
+    setError(null)
+  }
+  const handleCaptchaError = () => {
+    console.log('captcha error')
+    setError('Error in captcha verification. Please try again.')
+    setCaptchaToken(null)
+  }
+  const handleCaptchaFailed = () => {
+    console.log('captcha failed')
+    setError('Failed captcha verification. Please try again.')
+    setCaptchaToken(null)
   }
 
   if (isSubmitted) {
@@ -204,11 +215,15 @@ export const RaffleEntry = () => {
   if (captchaToken == null) {
     return (
       <Container>
+        {error != null && <SubmitError>{error}</SubmitError>}
+
         <CaptchaContainer>
           <ProcaptchaComponent
             siteKey={clientConfig.prosopoSiteKey}
             language={'en'}
             callback={handleCaptchaSuccess}
+            error-callback={handleCaptchaError}
+            failed-callback={handleCaptchaFailed}
             htmlAttributes={{
               className: 'my-app__procaptcha',
               style: {
