@@ -7,14 +7,14 @@
     "configure": "configure",
     "build.web": "webpack --mode production",
     "build.server": "tsc -p tsconfig.server.json",
-    "prepare": "husky",
+    "prepare": "yarn clean && yarn build.server && yarn build.web",
     "start": "node lib/server/index.js",
     "start.dev": "node -r sucrase/register src/server/index.ts",
     "start.web": "webpack serve --mode development",
     "lint": "eslint . --ext .ts,.tsx",
     "fix": "eslint . --ext .ts,.tsx --fix",
     "clean": "rimraf lib dist",
-    "precommit": "yarn lint",
+    "precommit": "yarn lint && yarn tsc --noEmit",
     "postinstall": "yarn prepare"
   },
   "dependencies": {
