@@ -4,7 +4,6 @@ import cors from 'cors'
 import path from 'path'
 import { RaffleEntry, asRaffleEntryRequest } from '../common/types'
 import { config } from '../config'
-import { appPort } from '../common/values'
 
 const app = express()
 
@@ -199,6 +198,6 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../../dist/index.html'))
 })
 
-app.listen(appPort, () => {
-  console.log(`Server running at http://localhost:${appPort}`)
+app.listen(config.appPort, () => {
+  console.log(`Server running at http://localhost:${config.appPort}`)
 })
