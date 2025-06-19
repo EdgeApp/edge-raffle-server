@@ -109,20 +109,6 @@ const checkDuplicates = async (
   publicAddress: string,
   raffleId: string
 ) => {
-  // Check for duplicate handle
-  const handleResult = await db.find({
-    selector: {
-      raffleId,
-      nameHandle
-    },
-    limit: 1,
-    use_index: 'idx_handle'
-  })
-
-  if (handleResult.docs.length > 0) {
-    throw new Error('This handle is already registered for the raffle')
-  }
-
   // Check for duplicate address
   const addressResult = await db.find({
     selector: {
