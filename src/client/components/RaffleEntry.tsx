@@ -207,7 +207,7 @@ export const RaffleEntry = () => {
   if (publicAddress == null) {
     return (
       <Container>
-        <ErrorMessage>Invalid URL: Missing Monero address</ErrorMessage>
+        <ErrorMessage>Invalid URL: Missing Public Address</ErrorMessage>
       </Container>
     )
   }
@@ -238,16 +238,16 @@ export const RaffleEntry = () => {
 
   return (
     <Container>
-      <Title>Enter name or handle to register</Title>
+      <Title>Enter email address to register</Title>
       <Input
         type="text"
         value={nameHandle}
         onChange={(e) => setNameHandle(e.target.value)}
-        placeholder="Enter your name or handle"
+        placeholder="Enter your email address"
         disabled={isSubmitting}
       />
       <AddressSection>
-        <AddressLabel>Your Monero Address</AddressLabel>
+        <AddressLabel>Your Public Address</AddressLabel>
         <AddressValue>{publicAddress}</AddressValue>
       </AddressSection>
       <Button

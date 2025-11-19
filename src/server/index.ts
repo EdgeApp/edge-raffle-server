@@ -120,7 +120,7 @@ const checkDuplicates = async (
   })
 
   if (addressResult.docs.length > 0) {
-    throw new Error('This Monero address is already registered for the raffle')
+    throw new Error('This address is already registered for the raffle')
   }
 }
 
@@ -129,7 +129,8 @@ app.get('/api/getEntries', async (req, res) => {
   const result = await db.find({
     selector: {
       raffleId: config.raffleId
-    }
+    },
+    limit: 1000
   })
 
   const entries = asRaffleEntries(result.docs)
