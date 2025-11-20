@@ -148,9 +148,8 @@ app.get('/api/getEntries', async (req, res) => {
 app.post('/api/addEntry', async (req, res) => {
   console.log('Serving addEntry')
   try {
-    const { nameHandle, publicAddress, captchaToken } = asRaffleEntryRequest(
-      req.body
-    )
+    const { nameHandle, emailAddress, publicAddress, captchaToken } =
+      asRaffleEntryRequest(req.body)
 
     if (nameHandle === '' || publicAddress === '') {
       return res

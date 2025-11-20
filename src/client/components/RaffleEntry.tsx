@@ -114,6 +114,7 @@ export const RaffleEntry = () => {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const [nameHandle, setNameHandle] = useState('')
+  const [emailAddress, setEmailAddress] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitted, setIsSubmitted] = useState(false)
@@ -130,6 +131,7 @@ export const RaffleEntry = () => {
   const handleSubmit = async () => {
     if (
       nameHandle.trim() === '' ||
+      emailAddress.trim() === '' ||
       publicAddress == null ||
       captchaToken == null
     )
@@ -147,6 +149,7 @@ export const RaffleEntry = () => {
         },
         body: JSON.stringify({
           nameHandle,
+          emailAddress,
           publicAddress,
           captchaToken
         })
@@ -238,11 +241,18 @@ export const RaffleEntry = () => {
 
   return (
     <Container>
-      <Title>Enter email address to register</Title>
+      <Title>Enter name and email address to register</Title>
       <Input
         type="text"
         value={nameHandle}
         onChange={(e) => setNameHandle(e.target.value)}
+        placeholder="Enter your name"
+        disabled={isSubmitting}
+      />
+      <Input
+        type="text"
+        value={emailAddress}
+        onChange={(e) => setEmailAddress(e.target.value)}
         placeholder="Enter your email address"
         disabled={isSubmitting}
       />

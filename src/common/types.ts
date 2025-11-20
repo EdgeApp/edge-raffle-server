@@ -30,6 +30,7 @@ export const asRaffleEntries = asArray(asRaffleEntry)
 
 export const asRaffleEntryRequest = asObject({
   nameHandle: asString,
+  emailAddress: asOptional(asString),
   publicAddress: asString,
   captchaToken: asString
 })
