@@ -3,6 +3,7 @@
 node_modules
 config.json
 clientConfig.json
+testerConfig.json
 .vscode/
 dist/
 lib/
