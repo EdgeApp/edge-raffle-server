@@ -1,11 +1,18 @@
-import { useState, useEffect, useRef } from 'react'
-import styled from 'styled-components'
-import { useSearchParams, useNavigate } from 'react-router-dom'
-import { getApiBaseUrl } from '../api/baseUrl'
 import { ProcaptchaComponent } from '@prosopo/react-procaptcha-wrapper'
-import { clientConfig } from '../../clientConfig'
+import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import styled from 'styled-components'
 
-console.log('config', clientConfig)
+import { clientConfig } from '../../clientConfig'
+import {
+  type RaffleCampaignInfo,
+  asRaffleCampaignInfo
+} from '../../common/types'
+import { getApiBaseUrl } from '../api/baseUrl'
+
+// ---------------------------------------------------------------------------
+// Styled components
+// ---------------------------------------------------------------------------
 
 const Container = styled.div`
   display: flex;
@@ -20,6 +27,14 @@ const Title = styled.h1`
   text-align: center;
   margin-bottom: 20px;
   font-size: 24px;
+`
+
+const Subtitle = styled.p`
+  text-align: center;
+  margin-bottom: 20px;
+  color: #666;
+  font-size: 14px;
+  max-width: 400px;
 `
 
 const Input = styled.input`
@@ -110,46 +125,83 @@ const CaptchaContainer = styled.div`
   justify-content: center;
 `
 
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
 export const RaffleEntry = () => {
   const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
+  const publicAddress = searchParams.get('publicAddress')
+  const campaignId = searchParams.get('campaign')
+
+  // Campaign config fetched from CouchDB via the server
+  const [campaign, setCampaign] = useState<RaffleCampaignInfo | null>(null)
+  const [campaignError, setCampaignError] = useState<string | null>(null)
+
+  // Form fields (used across both modes)
   const [nameHandle, setNameHandle] = useState('')
   const [emailAddress, setEmailAddress] = useState('')
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitted, setIsSubmitted] = useState(false)
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const captchaDisabled = clientConfig.prosopoSiteKey === ''
+  const [captchaToken, setCaptchaToken] = useState<string | null>(
+    captchaDisabled ? 'bypass' : null
+  )
   const captchaRef = useRef<any>(null)
-  const publicAddress = searchParams.get('publicAddress')
 
+  // Fetch campaign config on mount
   useEffect(() => {
-    if (publicAddress == null) {
-      navigate('/', { replace: true })
+    if (campaignId == null || campaignId === '') {
+      setCampaignError('Missing campaign parameter in URL')
+      return
     }
-  }, [publicAddress, navigate])
+
+    const fetchCampaign = async (): Promise<void> => {
+      try {
+        const response = await fetch(
+          `${getApiBaseUrl()}/api/campaign/${encodeURIComponent(campaignId)}`
+        )
+        if (!response.ok) {
+          setCampaignError('Campaign not found')
+          return
+        }
+        const data = asRaffleCampaignInfo(await response.json())
+        setCampaign(data)
+      } catch {
+        setCampaignError('Failed to load campaign configuration')
+      }
+    }
+
+    void fetchCampaign()
+  }, [campaignId])
+
+  // Derived validation based on campaign mode
+  const isFormValid = (): boolean => {
+    if (publicAddress == null || captchaToken == null) return false
+    if (campaign == null) return false
+    if (campaign.mode === 'email') {
+      return nameHandle.trim() !== '' && emailAddress.trim() !== ''
+    }
+    // handle mode
+    return nameHandle.trim() !== ''
+  }
 
   const handleSubmit = async () => {
-    if (
-      nameHandle.trim() === '' ||
-      emailAddress.trim() === '' ||
-      publicAddress == null ||
-      captchaToken == null
-    )
-      return
+    if (!isFormValid() || campaignId == null) return
 
     setIsSubmitting(true)
     setError(null)
 
     try {
-      console.log('Submitting entry')
       const response = await fetch(`${getApiBaseUrl()}/api/addEntry`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          campaignId,
           nameHandle,
-          emailAddress,
+          emailAddress: campaign?.mode === 'email' ? emailAddress : '',
           publicAddress,
           captchaToken
         })
@@ -157,23 +209,17 @@ export const RaffleEntry = () => {
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.log('Error submitting entry:', errorText)
         throw new Error(errorText)
       }
 
-      console.log('Successfully submitted entry')
       setIsSubmitted(true)
-    } catch (error) {
-      console.log('Error submitting entry:', error)
+    } catch (err) {
       setError(
-        error instanceof Error
-          ? error.message
+        err instanceof Error
+          ? err.message
           : 'Failed to submit entry. Please try again.'
       )
-      // Reset captcha on error
-      if (captchaRef.current) {
-        captchaRef.current.reset()
-      }
+      if (captchaRef.current) captchaRef.current.reset()
       setCaptchaToken(null)
     } finally {
       setIsSubmitting(false)
@@ -181,21 +227,48 @@ export const RaffleEntry = () => {
   }
 
   const handleCaptchaSuccess = (token: string) => {
-    console.log('captcha success', token)
     setCaptchaToken(token)
     setError(null)
   }
   const handleCaptchaError = () => {
-    console.log('captcha error')
     setError('Error in captcha verification. Please try again.')
     setCaptchaToken(null)
   }
   const handleCaptchaFailed = () => {
-    console.log('captcha failed')
     setError('Failed captcha verification. Please try again.')
     setCaptchaToken(null)
   }
 
+  // ---- Render states ----
+
+  // Missing or invalid campaign
+  if (campaignError != null) {
+    return (
+      <Container>
+        <ErrorMessage>{campaignError}</ErrorMessage>
+      </Container>
+    )
+  }
+
+  // Still loading campaign config
+  if (campaign == null) {
+    return (
+      <Container>
+        <Title>Loading...</Title>
+      </Container>
+    )
+  }
+
+  // Missing public address
+  if (publicAddress == null) {
+    return (
+      <Container>
+        <ErrorMessage>Invalid URL: Missing Public Address</ErrorMessage>
+      </Container>
+    )
+  }
+
+  // Success
   if (isSubmitted) {
     return (
       <Container>
@@ -207,19 +280,13 @@ export const RaffleEntry = () => {
     )
   }
 
-  if (publicAddress == null) {
-    return (
-      <Container>
-        <ErrorMessage>Invalid URL: Missing Public Address</ErrorMessage>
-      </Container>
-    )
-  }
-
+  // Captcha step
   if (captchaToken == null) {
     return (
       <Container>
+        <Title>{campaign.title}</Title>
+        <Subtitle>{campaign.subtitle}</Subtitle>
         {error != null && <SubmitError>{error}</SubmitError>}
-
         <CaptchaContainer>
           <ProcaptchaComponent
             siteKey={clientConfig.prosopoSiteKey}
@@ -229,9 +296,7 @@ export const RaffleEntry = () => {
             failed-callback={handleCaptchaFailed}
             htmlAttributes={{
               className: 'my-app__procaptcha',
-              style: {
-                maxWidth: '600px'
-              }
+              style: { maxWidth: '600px' }
             }}
           />
         </CaptchaContainer>
@@ -239,36 +304,45 @@ export const RaffleEntry = () => {
     )
   }
 
+  // Entry form – mode-specific fields
   return (
     <Container>
-      <Title>Enter name and email address to register</Title>
-      <Input
-        type="text"
-        value={nameHandle}
-        onChange={(e) => setNameHandle(e.target.value)}
-        placeholder="Enter your name"
-        disabled={isSubmitting}
-      />
-      <Input
-        type="text"
-        value={emailAddress}
-        onChange={(e) => setEmailAddress(e.target.value)}
-        placeholder="Enter your email address"
-        disabled={isSubmitting}
-      />
+      <Title>{campaign.title}</Title>
+      <Subtitle>{campaign.subtitle}</Subtitle>
+
+      {campaign.mode === 'email' ? (
+        <>
+          <Input
+            type="text"
+            value={nameHandle}
+            onChange={(e) => setNameHandle(e.target.value)}
+            placeholder="Enter your name"
+            disabled={isSubmitting}
+          />
+          <Input
+            type="email"
+            value={emailAddress}
+            onChange={(e) => setEmailAddress(e.target.value)}
+            placeholder="Enter your email address"
+            disabled={isSubmitting}
+          />
+        </>
+      ) : (
+        <Input
+          type="text"
+          value={nameHandle}
+          onChange={(e) => setNameHandle(e.target.value)}
+          placeholder="Enter your handle"
+          disabled={isSubmitting}
+        />
+      )}
+
       <AddressSection>
         <AddressLabel>Your Public Address</AddressLabel>
         <AddressValue>{publicAddress}</AddressValue>
       </AddressSection>
-      <Button
-        onClick={handleSubmit}
-        disabled={
-          isSubmitting ||
-          nameHandle.trim() === '' ||
-          publicAddress == null ||
-          captchaToken == null
-        }
-      >
+
+      <Button onClick={handleSubmit} disabled={isSubmitting || !isFormValid()}>
         {isSubmitting ? 'Submitting...' : 'Submit'}
       </Button>
       {error != null && <SubmitError>{error}</SubmitError>}

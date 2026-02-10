@@ -9,8 +9,42 @@ import {
   asValue
 } from 'cleaners'
 
+// ---------------------------------------------------------------------------
+// Raffle Campaign (CouchDB document in raffle_campaigns)
+// ---------------------------------------------------------------------------
+
+export type RaffleCampaignMode = 'email' | 'handle'
+
+export const asRaffleCampaignMode = asValue('email', 'handle')
+
+export const asRaffleCampaign = asObject({
+  _id: asOptional(asString),
+  _rev: asOptional(asString),
+  title: asString,
+  subtitle: asString,
+  mode: asRaffleCampaignMode
+})
+
+export type RaffleCampaign = ReturnType<typeof asRaffleCampaign>
+
+/** Client-safe campaign info returned by the API (no _rev). */
+export const asRaffleCampaignInfo = asObject({
+  _id: asOptional(asString),
+  title: asString,
+  subtitle: asString,
+  mode: asRaffleCampaignMode
+})
+
+export type RaffleCampaignInfo = ReturnType<typeof asRaffleCampaignInfo>
+
+// ---------------------------------------------------------------------------
+// Raffle Entry (CouchDB document in raffle_entries)
+// ---------------------------------------------------------------------------
+
 export interface RaffleEntry {
+  campaignId: string
   nameHandle: string
+  emailAddress: string
   isoDate: string
   raffleId: string
   publicAddress: string
@@ -20,7 +54,9 @@ export interface RaffleEntry {
 
 // cleaner matching RaffleEntry but without _id and _rev
 export const asRaffleEntry = asObject({
-  nameHandle: asString,
+  campaignId: asOptional(asString, ''),
+  nameHandle: asOptional(asString, ''),
+  emailAddress: asOptional(asString, ''),
   isoDate: asString,
   raffleId: asString,
   publicAddress: asString
@@ -29,8 +65,9 @@ export const asRaffleEntry = asObject({
 export const asRaffleEntries = asArray(asRaffleEntry)
 
 export const asRaffleEntryRequest = asObject({
-  nameHandle: asString,
-  emailAddress: asOptional(asString),
+  campaignId: asString,
+  nameHandle: asOptional(asString, ''),
+  emailAddress: asOptional(asString, ''),
   publicAddress: asString,
   captchaToken: asString
 })
